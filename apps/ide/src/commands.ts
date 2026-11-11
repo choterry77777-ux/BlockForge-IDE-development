@@ -6,7 +6,7 @@ import { runActive, stopRun } from './runtime/runner';
 import { activeFile, useProject } from './state/project';
 import { type RightTab, useSettings } from './state/settings';
 import { useUi } from './state/ui';
-import { activeDoc, goHome, newDoc, openFileDialog, openFolder, runTarget, saveDoc } from './state/workspace';
+import { activeDoc, goHome, newDoc, openFileDialog, openFolder, runTarget, saveDoc, useWorkspace } from './state/workspace';
 import { cloneRepository } from './terminal/clone';
 import { openShell } from './terminal/sessions';
 
@@ -17,8 +17,8 @@ export interface Command {
   icon?: string;
   /** Shortcut in "Mod+Shift+K" form; Mod is Command on macOS and Control elsewhere. */
   keys?: string;
-  /** Requires an open project; 'target' also accepts a text tab that can run. */
-  project?: boolean | 'target';
+  /** Requires an open project; 'target' also accepts a text tab that can run, 'open' any open tab. */
+  project?: boolean | 'target' | 'open';
   run: () => void | Promise<void>;
 }
 
@@ -39,8 +39,8 @@ export const COMMANDS: Command[] = [
   { id: 'projects', title: 'cmd.projects', icon: 'files', keys: 'Mod+O', run: () => useUi.getState().open('projects') },
   { id: 'openFile', title: 'cmd.openProjectFile', icon: 'folderOpen', run: openProjectFile },
   // Save acts on the tab in front: a text tab saves its file, otherwise the project is saved.
-  { id: 'save', title: 'cmd.save', icon: 'save', keys: 'Mod+S', run: () => (activeDoc() ? void saveDoc(activeDoc()!.id) : useProject.getState().project ? saveProject() : undefined) },
-  { id: 'saveAs', title: 'cmd.saveAs', icon: 'save', keys: 'Mod+Shift+S', run: () => (activeDoc() ? void saveDoc(activeDoc()!.id, true) : useProject.getState().project ? saveProjectAs() : undefined) },
+  { id: 'save', title: 'cmd.save', icon: 'save', keys: 'Mod+S', project: 'open', run: () => (activeDoc() ? void saveDoc(activeDoc()!.id) : useProject.getState().project ? saveProject() : undefined) },
+  { id: 'saveAs', title: 'cmd.saveAs', icon: 'save', keys: 'Mod+Shift+S', project: 'open', run: () => (activeDoc() ? void saveDoc(activeDoc()!.id, true) : useProject.getState().project ? saveProjectAs() : undefined) },
   { id: 'home', title: 'cmd.home', icon: 'home', run: goHome },
   { id: 'newText', title: 'cmd.newText', icon: 'filePlus', keys: 'Mod+T', run: () => void newDoc() },
   { id: 'openTextFile', title: 'cmd.openTextFile', icon: 'file', run: openFileDialog },
@@ -104,10 +104,19 @@ function matches(e: KeyboardEvent, keys: string): boolean {
   return e.key.toLowerCase() === key.toLowerCase() || (key === '\\' && e.code === 'Backslash') || (/^\d$/.test(key) && e.code === `Digit${key}`);
 }
 
+/** Whether a command has something to act on right now. */
+export function commandAvailable(cmd: Command): boolean {
+  if (!cmd.project) return true;
+  const hasProject = !!useProject.getState().project;
+  if (cmd.project === 'target') return !!runTarget();
+  if (cmd.project === 'open') return hasProject || useWorkspace.getState().docs.length > 0;
+  return hasProject;
+}
+
 export function runCommand(id: string): void {
   const cmd = COMMANDS.find((c) => c.id === id);
   if (!cmd) return;
-  if (cmd.project === 'target' ? !runTarget() : cmd.project && !useProject.getState().project) {
+  if (!commandAvailable(cmd)) {
     useUi.getState().toast(t('cmd.needsProject'), 'info');
     return;
   }

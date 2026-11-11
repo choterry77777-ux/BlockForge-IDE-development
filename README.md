@@ -24,7 +24,7 @@ It is a macOS app (Tauri 2 + React + Blockly + Monaco). A Windows build configur
 - Tabs that mix block files and plain text files. A new tab is a text editor; pick its language from the language menu.
 - Folder explorer: open a folder, browse, create, rename, move to Trash, search, or clone a Git repository.
 - A real terminal (PTY) in the bottom panel, with multiple sessions.
-- "Edit code" detaches a file from its blocks so you can continue in text; JavaScript can be converted back to blocks.
+- Type straight into the generated code whenever you want. For JavaScript and TypeScript the blocks are rebuilt from your code as you type; for other languages the blocks pause and can take over again later.
 - Compare the generated code of several languages side by side, with notes on where their behaviour differs.
 - Package manifests for pip, npm, Cargo, Go modules, NuGet, Maven, Composer, RubyGems and pub.
 - Projects in a versioned `.bfproj` format, autosave with recovery, ZIP export.

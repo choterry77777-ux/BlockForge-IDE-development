@@ -105,7 +105,7 @@ function guard(fileId: string, started: number): { limit: (text: string) => bool
   };
 }
 
-function transpile(code: string, fileName: string): Promise<TranspileResult> {
+export function transpile(code: string, fileName: string): Promise<TranspileResult> {
   return new Promise((resolve, reject) => {
     const w = new Worker(new URL('./ts.worker.ts', import.meta.url), { type: 'module' });
     w.onmessage = (e: MessageEvent<TranspileResult>) => {

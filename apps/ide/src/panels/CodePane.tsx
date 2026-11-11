@@ -15,6 +15,25 @@ function toMarkers(diags: Diagnostic[], entry: string): Marker[] {
   return diags.filter((d) => d.line && (!d.file || d.file === entry)).map((d) => ({ line: d.line!, endLine: d.endLine, column: d.column, message: diagText(d), severity: d.severity }));
 }
 
+/** Languages whose code can be read back into blocks as it is typed. */
+export function blocksFollowCode(language: string): boolean {
+  return language === 'javascript' || language === 'typescript';
+}
+
+/**
+ * Make the blocks the source again: the code is replaced by what they generate, after asking.
+ * When the blocks were following the code they already hold its logic, and only comments
+ * and formatting are lost. A checkpoint is kept either way.
+ */
+export async function regenerateFromBlocks(fileId: string, following = false): Promise<void> {
+  const ok = following
+    ? await confirmDialog({ title: t('blocks.editTitle'), message: t('blocks.editMessage'), confirmLabel: t('blocks.editBlocks') })
+    : await confirmDialog({ title: t('code.reattachTitle'), message: t('code.reattachMessage'), danger: true, confirmLabel: t('code.reattach') });
+  if (!ok) return;
+  useProject.getState().checkpoint(t('code.reattachCheckpoint'));
+  useProject.getState().setMode(fileId, 'blocks');
+}
+
 export function CodePane({ file }: { file: ProjectFile }) {
   const result = useProject((s) => s.results[file.id]);
   const selectedBlock = useUi((s) => s.selectedBlock);
@@ -47,16 +66,23 @@ export function CodePane({ file }: { file: ProjectFile }) {
     else completableModels.set(uri, { language: LANGUAGES[file.language].name, fileName: file.name });
   }, [blocksMode, file.language, file.name, file.id]);
 
+  // Typing into generated code makes the file hand-edited right away: the blocks are kept
+  // and paused, and a checkpoint allows going back to the state before the first edit.
+  const edit = (code: string) => {
+    const store = useProject.getState();
+    if (blocksMode && code !== file.code) {
+      store.checkpoint(t('code.detachCheckpoint'));
+      store.setMode(file.id, 'code');
+      useUi.getState().toast(t('code.autoDetached'), 'info');
+    }
+    store.updateCode(file.id, code);
+  };
+
   const detach = async () => {
     const ok = await confirmDialog({ title: t('code.detachTitle'), message: t('code.detachMessage'), confirmLabel: t('code.detach') });
     if (ok) useProject.getState().setMode(file.id, 'code');
   };
-  const reattach = async () => {
-    const ok = await confirmDialog({ title: t('code.reattachTitle'), message: t('code.reattachMessage'), danger: true, confirmLabel: t('code.reattach') });
-    if (!ok) return;
-    useProject.getState().checkpoint(t('code.reattachCheckpoint'));
-    useProject.getState().setMode(file.id, 'blocks');
-  };
+  const reattach = () => regenerateFromBlocks(file.id, blocksFollowCode(file.language));
 
   return (
     <div className="col grow" data-testid="code-pane">
@@ -100,11 +126,10 @@ export function CodePane({ file }: { file: ProjectFile }) {
         docId={file.id}
         value={file.code}
         language={monacoLanguage(file.language)}
-        readOnly={blocksMode}
         markers={markers}
         highlight={highlight}
         revealLine={revealLine && revealLine.file === entry ? { line: revealLine.line, n: revealLine.n } : undefined}
-        onChange={(code) => useProject.getState().updateCode(file.id, code)}
+        onChange={edit}
         onLineClick={(line) => {
           if (!blocksMode) return;
           const id = blockForLine(file.id, line);

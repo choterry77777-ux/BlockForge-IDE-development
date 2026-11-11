@@ -15,7 +15,7 @@ This list is kept honest on purpose: anything here is either not built, not veri
 - **HTML and CSS**: the generated documents are checked structurally and shown in a sandboxed preview; there is no browser-compatibility testing.
 - **Assembly**: ARM64 (macOS, Linux) and x86-64 (macOS, Linux) output is generated. ARM64/macOS runs natively in the tests and x86-64/macOS runs under Rosetta; the Linux variants are generated but not executed.
 - Some block/language combinations cannot be expressed (for example exceptions in C, classes in Bash). These produce an explicit "unsupported" diagnostic on the block instead of approximate code. The full matrix is in [SUPPORT.md](SUPPORT.md).
-- **Code to blocks** exists for JavaScript only (a subset; everything else is kept in raw-code blocks). For other languages a file switched to "Edit code" cannot be converted back to blocks.
+- **Code to blocks**: you can type straight into generated code; the file then counts as hand-edited. For JavaScript and TypeScript the blocks are rebuilt from the code as you type (TypeScript types are removed first and inferred again when code is generated; comments and formatting are not kept in blocks; anything outside the block vocabulary is kept in raw-code blocks). For every other language there is no reader for the code, so the blocks are paused while you edit and can only take over again by regenerating the code from them.
 
 ## Running and debugging
 

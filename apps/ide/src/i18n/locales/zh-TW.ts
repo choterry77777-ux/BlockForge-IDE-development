@@ -3,6 +3,17 @@ import type { LocaleBundle } from '..';
 
 const ui: Record<string, string> = {
   // ----- home, text tabs, folders, terminal -----
+  'blocks.pausedWhy': "只有 JavaScript 和 TypeScript 的積木可以跟隨程式碼。",
+  'blocks.follow': "積木會跟隨程式碼。",
+  'blocks.followRaw': "積木會跟隨程式碼。有 {count} 處保留為原樣程式碼。",
+  'blocks.followError': "程式碼有錯誤。正在顯示最後一次能產生的積木。",
+  'blocks.editBlocks': "編輯積木",
+  'blocks.editTitle': "要用積木來編輯嗎？",
+  'blocks.editMessage': "程式碼將依積木重新產生。註解與格式不會保留。",
+  'code.generated': "由積木產生的程式碼。在此輸入即可直接以程式碼編輯。",
+  'code.autoDetached': "現在直接以程式碼方式編輯此檔案。積木不再更新它；選擇「重新產生」即可回到積木。",
+  'code.detachCheckpoint': "手動編輯程式碼之前",
+  'blocks.paused': "以程式碼方式編輯此檔案期間，積木已暫停。",
   'error.title': '發生問題',
   'error.message': '應用程式的這個部分因錯誤而停止。你可以重試或重新載入視窗。',
   'error.retry': '重試',
@@ -233,8 +244,8 @@ const ui: Record<string, string> = {
   'cmd.newProject': '新增專案',
   'cmd.projects': '專案',
   'cmd.openProjectFile': '開啟專案檔案',
-  'cmd.save': '儲存專案',
-  'cmd.saveAs': '專案另存新檔',
+  'cmd.save': '儲存',
+  'cmd.saveAs': '另存新檔',
   'cmd.exportZip': '匯出為 ZIP',
   'cmd.exportFile': '匯出目前的檔案',
   'cmd.importSource': '匯入原始碼檔案',
@@ -402,7 +413,6 @@ const ui: Record<string, string> = {
   'type.dictionary': '字典',
 
   // ----- code pane -----
-  'code.generated': '由積木產生，唯讀。',
   'code.owned': '以程式碼編輯。積木不會再更新這個檔案。',
   'code.edit': '編輯程式碼',
   'code.detach': '以程式碼編輯',

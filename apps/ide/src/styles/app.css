@@ -1499,3 +1499,15 @@ table.grid th {
   max-height: 260px;
   overflow: auto;
 }
+
+/* ---------- blocks shown while the code is edited by hand ---------- */
+.blocks-follow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 4px 6px 4px 12px;
+  border-bottom: var(--hairline) solid var(--border-2);
+  flex: none;
+  line-height: 1.35;
+}

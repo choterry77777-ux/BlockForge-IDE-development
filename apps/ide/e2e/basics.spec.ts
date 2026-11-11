@@ -70,9 +70,15 @@ test('previews HTML in a sandboxed frame and reacts to clicks', async ({ page })
   await run(page);
   const frame = page.frameLocator('[data-testid=preview-frame]');
   await expect(frame.locator('h1')).toHaveText('Click counter');
+  // The button can be clicked a moment before the page script has attached its handler,
+  // so the first click is repeated until the page reacts; the next click must then count up by one.
+  await expect(async () => {
+    await frame.locator('#add').click();
+    await expect(frame.locator('#output')).toHaveText(/Clicks: [1-9]/, { timeout: 400 });
+  }).toPass();
+  const before = Number((await frame.locator('#output').textContent())!.replace(/\D/g, ''));
   await frame.locator('#add').click();
-  await frame.locator('#add').click();
-  await expect(frame.locator('#output')).toHaveText('Clicks: 2');
+  await expect(frame.locator('#output')).toHaveText(`Clicks: ${before + 1}`);
   // The frame has no same-origin access to the IDE.
   await expect(page.getByTestId('preview-frame')).toHaveAttribute('sandbox', /^(?!.*allow-same-origin).*$/);
 });
@@ -154,3 +160,73 @@ test('drags a block from the toolbox into the workspace', async ({ page }) => {
   await page.mouse.up();
   await expect.poll(async () => (await codeText(page)).match(/print\(/g)?.length ?? 0).toBe(2);
 });
+
+test('generated code can be typed into directly; the blocks pause and can take over again', async ({ page }) => {
+  await startProject(page, 'python');
+  await expect(page.getByTestId('code-mode')).toContainText('Generated from blocks');
+  await expectCode(page, 'print("Hello, World!")');
+  // No mode switch first: click into the code and type.
+  await page.getByTestId('code-pane').locator('.monaco-editor').first().click();
+  await page.keyboard.press('ControlOrMeta+End');
+  await page.keyboard.type('print("typed by hand")');
+  await expect(page.getByTestId('code-mode')).toContainText('Edited as code');
+  await expectCode(page, 'print("typed by hand")');
+  // The blocks are still there, paused, and say so.
+  await expect(page.getByTestId('blocks-preview')).toBeVisible();
+  await expect(page.getByTestId('blocks-follow')).toContainText('Blocks are paused');
+  await expect(page.getByTestId('blocks-follow')).toHaveAttribute('data-state', 'paused');
+  await run(page);
+  await expectOutput(page, 'Hello, World!');
+  await expectOutput(page, 'typed by hand');
+  // Going back to the blocks asks first, then the code is generated again.
+  await page.getByTestId('blocks-resume').click();
+  await expect(page.getByTestId('confirm-dialog')).toContainText('manual edits are discarded');
+  await page.getByTestId('confirm-ok').click();
+  await expect(page.getByTestId('code-mode')).toContainText('Generated from blocks');
+  await expect(page.getByTestId('blocks-follow')).toHaveCount(0);
+  await expectCode(page, /^(?![\s\S]*typed by hand)/);
+});
+
+const blocksJson = (page: import('@playwright/test').Page) =>
+  page.evaluate(() => {
+    const w = window as unknown as { __bf: { useProject: { getState: () => { project: { activeFileId: string; files: { id: string; blocks: unknown }[] } } } } };
+    const p = w.__bf.useProject.getState().project;
+    return JSON.stringify(p.files.find((f) => f.id === p.activeFileId)!.blocks);
+  });
+
+for (const lang of ['javascript', 'typescript'] as const) {
+  test(`blocks are rebuilt from the code as it is typed (${lang})`, async ({ page }) => {
+    await startProject(page, lang);
+    await expectCode(page, 'console.log("Hello, World!");');
+    await page.getByTestId('code-pane').locator('.monaco-editor').first().click();
+    await page.keyboard.press('ControlOrMeta+End');
+    await page.keyboard.type(lang === 'typescript' ? 'const count: number = 3;' : 'const count = 3;');
+    await page.keyboard.press('Enter');
+    await page.keyboard.type('for (let i = 0; i < count; i++) { console.log("typed by hand"); }');
+    // The blocks now mirror the loop and the text.
+    await expect(page.getByTestId('blocks-follow')).toHaveAttribute('data-state', 'synced');
+    await expect(page.getByTestId('blocks-follow')).toContainText('Blocks follow the code');
+    await expect.poll(() => blocksJson(page)).toContain('typed by hand');
+    const json = await blocksJson(page);
+    expect(json).toContain('Hello, World!');
+    expect(json).toMatch(/controls_(for|whileUntil|repeat_ext)/);
+    await expect(page.getByTestId('blocks-preview').locator('.blocklyBlock').nth(5)).toBeVisible();
+    // A syntax error keeps the last good blocks and says so.
+    await page.keyboard.press('ControlOrMeta+End');
+    await page.keyboard.type('\nlet = ;');
+    await expect(page.getByTestId('blocks-follow')).toHaveAttribute('data-state', 'error');
+    expect(await blocksJson(page)).toContain('typed by hand');
+    // Remove the broken line again.
+    await page.keyboard.press('ControlOrMeta+Shift+K');
+    await expect(page.getByTestId('blocks-follow')).toHaveAttribute('data-state', 'synced');
+    // Switching to the blocks keeps the typed logic: the code is generated from them and runs.
+    await page.getByTestId('blocks-resume').click();
+    await expect(page.getByTestId('confirm-dialog')).toContainText('Comments and formatting are not preserved');
+    await page.getByTestId('confirm-ok').click();
+    await expect(page.getByTestId('code-mode')).toContainText('Generated from blocks');
+    await expectCode(page, 'typed by hand');
+    await run(page);
+    await expectOutput(page, 'Hello, World!');
+    await expectOutput(page, /typed by hand\s+typed by hand\s+typed by hand/);
+  });
+}

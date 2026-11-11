@@ -3,6 +3,17 @@ import type { LocaleBundle } from '..';
 
 const ui: Record<string, string> = {
   // ----- home, text tabs, folders, terminal -----
+  'blocks.pausedWhy': "只有 JavaScript 和 TypeScript 的块可以跟随代码。",
+  'blocks.follow': "块会跟随代码。",
+  'blocks.followRaw': "块会跟随代码。有 {count} 处保留为原始代码。",
+  'blocks.followError': "代码有错误。正在显示最后一次能生成的块。",
+  'blocks.editBlocks': "编辑块",
+  'blocks.editTitle': "用块来编辑吗？",
+  'blocks.editMessage': "代码将根据块重新生成。注释和格式不会保留。",
+  'code.generated': "由块生成的代码。在此输入即可直接按代码编辑。",
+  'code.autoDetached': "现在直接以代码方式编辑此文件。块不再更新它；选择“重新生成”即可回到块。",
+  'code.detachCheckpoint': "手动编辑代码之前",
+  'blocks.paused': "以代码方式编辑此文件期间，块已暂停。",
   'error.title': '出现问题',
   'error.message': '应用的这一部分因错误而停止。你可以重试或重新加载窗口。',
   'error.retry': '重试',
@@ -233,8 +244,8 @@ const ui: Record<string, string> = {
   'cmd.newProject': '新建项目',
   'cmd.projects': '项目',
   'cmd.openProjectFile': '打开项目文件',
-  'cmd.save': '保存项目',
-  'cmd.saveAs': '项目另存为',
+  'cmd.save': '保存',
+  'cmd.saveAs': '另存为',
   'cmd.exportZip': '导出为 ZIP',
   'cmd.exportFile': '导出当前文件',
   'cmd.importSource': '导入源文件',
@@ -402,7 +413,6 @@ const ui: Record<string, string> = {
   'type.dictionary': '字典',
 
   // ----- code pane -----
-  'code.generated': '由块生成，只读。',
   'code.owned': '以代码方式编辑。块不再更新此文件。',
   'code.edit': '编辑代码',
   'code.detach': '以代码方式编辑',

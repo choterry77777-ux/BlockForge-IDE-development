@@ -1,8 +1,8 @@
 import { type Example, examplesFor, IMPERATIVE_LANGUAGES, LANGUAGE_IDS, LANGUAGES, type LanguageId, type ProjectFile } from '@blockforge/core';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createNewProject, deleteProject, duplicateCurrent, exportZip, openExample, openProjectFile, renameProject, saveProjectAs } from '../actions';
-import { COMMANDS, formatKeys, runCommand } from '../commands';
-import { runTarget } from '../state/workspace';
+import { commandAvailable, COMMANDS, formatKeys, runCommand } from '../commands';
+import { useWorkspace } from '../state/workspace';
 import { Icon } from '../components/Icon';
 import { Dialog } from '../components/ui';
 import { t } from '../i18n';
@@ -178,16 +178,17 @@ export function CommandPalette() {
   const [index, setIndex] = useState(0);
   const list = useRef<HTMLDivElement>(null);
   const hasProject = useProject((s) => !!s.project);
+  const openDocs = useWorkspace((s) => s.docs.length);
   const files = useProject((s) => s.project?.files) ?? NO_FILES;
   const items = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const cmds = COMMANDS.filter((c) => c.id !== 'palette' && (c.project === 'target' ? !!runTarget() : !c.project || hasProject)).map((c) => ({ key: c.id, title: t(c.title), icon: c.icon ?? 'command', keys: c.keys, run: () => runCommand(c.id) }));
+    const cmds = COMMANDS.filter((c) => c.id !== 'palette' && commandAvailable(c)).map((c) => ({ key: c.id, title: t(c.title), icon: c.icon ?? 'command', keys: c.keys, run: () => runCommand(c.id) }));
     const fileItems = files.map((f) => ({ key: `file-${f.id}`, title: f.name, icon: 'file', keys: undefined as string | undefined, run: () => useProject.getState().setActive(f.id) }));
     const all = [...cmds, ...fileItems];
     if (!q) return all;
     const words = q.split(/\s+/);
     return all.filter((c) => words.every((w) => c.title.toLowerCase().includes(w) || c.key.toLowerCase().includes(w)));
-  }, [query, hasProject, files]);
+  }, [query, hasProject, openDocs, files]);
   useEffect(() => setIndex(0), [query]);
   useEffect(() => {
     list.current?.querySelector('.active')?.scrollIntoView({ block: 'nearest' });

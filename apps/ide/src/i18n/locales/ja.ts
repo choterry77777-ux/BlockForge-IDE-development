@@ -3,6 +3,17 @@ import type { LocaleBundle } from '..';
 
 const ui: Record<string, string> = {
   // ----- home, text tabs, folders, terminal -----
+  'blocks.pausedWhy': "ブロックがコードに追従できるのは JavaScript と TypeScript だけです。",
+  'blocks.follow': "ブロックはコードに追従しています。",
+  'blocks.followRaw': "ブロックはコードに追従しています。{count} か所は生コードのまま保持されます。",
+  'blocks.followError': "コードにエラーがあります。最後に作成できたブロックを表示しています。",
+  'blocks.editBlocks': "ブロックを編集",
+  'blocks.editTitle': "ブロックで編集しますか？",
+  'blocks.editMessage': "コードはブロックから再生成されます。コメントと書式は保持されません。",
+  'code.generated': "ブロックから生成されたコードです。ここに入力するとコードとして直接編集できます。",
+  'code.autoDetached': "このファイルをコードとして直接編集しています。ブロックはこのファイルを更新しなくなります。ブロックに戻すには「再生成」を選んでください。",
+  'code.detachCheckpoint': "コードを直接編集する前",
+  'blocks.paused': "このファイルをコードとして編集している間、ブロックは停止しています。",
   'error.title': '問題が発生しました',
   'error.message': 'エラーのため、アプリのこの部分が停止しました。もう一度試すか、ウインドウを再読み込みしてください。',
   'error.retry': 'もう一度試す',
@@ -118,8 +129,8 @@ const ui: Record<string, string> = {
   'cmd.newProject': '新規プロジェクト',
   'cmd.projects': 'プロジェクト',
   'cmd.openProjectFile': 'プロジェクトファイルを開く',
-  'cmd.save': 'プロジェクトを保存',
-  'cmd.saveAs': 'プロジェクトに名前を付けて保存',
+  'cmd.save': '保存',
+  'cmd.saveAs': '名前を付けて保存',
   'cmd.exportZip': 'ZIP としてエクスポート',
   'cmd.exportFile': '現在のファイルをエクスポート',
   'cmd.importSource': 'ソースファイルをインポート',
@@ -287,7 +298,6 @@ const ui: Record<string, string> = {
   'type.dictionary': '辞書',
 
   // ----- code pane -----
-  'code.generated': 'ブロックから生成されたコードです。読み取り専用です。',
   'code.owned': 'コードとして編集中です。ブロックによるこのファイルの更新は行われません。',
   'code.edit': 'コードを編集',
   'code.detach': 'コードとして編集',

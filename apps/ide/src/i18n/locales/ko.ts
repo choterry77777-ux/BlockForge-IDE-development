@@ -3,6 +3,17 @@ import type { LocaleBundle } from '..';
 
 const ui: Record<string, string> = {
   // ----- home, text tabs, folders, terminal -----
+  'blocks.pausedWhy': "블록이 코드를 따라가는 기능은 JavaScript와 TypeScript에서만 됩니다.",
+  'blocks.follow': "블록이 코드를 따라갑니다.",
+  'blocks.followRaw': "블록이 코드를 따라갑니다. {count}개 부분은 원시 코드로 유지됩니다.",
+  'blocks.followError': "코드에 오류가 있습니다. 마지막으로 만들 수 있었던 블록을 표시합니다.",
+  'blocks.editBlocks': "블록 편집",
+  'blocks.editTitle': "블록으로 편집할까요?",
+  'blocks.editMessage': "코드를 블록에서 다시 생성합니다. 주석과 서식은 유지되지 않습니다.",
+  'code.generated': "블록에서 생성된 코드입니다. 여기에 입력하면 코드로 직접 편집합니다.",
+  'code.autoDetached': "이제 이 파일을 코드로 직접 편집합니다. 블록은 더 이상 이 파일을 바꾸지 않으며, \"다시 생성\"을 누르면 블록으로 돌아갑니다.",
+  'code.detachCheckpoint': "코드를 직접 편집하기 전",
+  'blocks.paused': "이 파일을 코드로 편집하는 동안 블록은 멈춰 있습니다.",
   'error.title': '문제가 발생했습니다',
   'error.message': '오류 때문에 앱의 이 부분이 멈췄습니다. 다시 시도하거나 창을 새로 고칠 수 있습니다.',
   'error.retry': '다시 시도',
@@ -233,8 +244,8 @@ const ui: Record<string, string> = {
   'cmd.newProject': '새 프로젝트',
   'cmd.projects': '프로젝트',
   'cmd.openProjectFile': '프로젝트 파일 열기',
-  'cmd.save': '프로젝트 저장',
-  'cmd.saveAs': '프로젝트를 다른 이름으로 저장',
+  'cmd.save': '저장',
+  'cmd.saveAs': '다른 이름으로 저장',
   'cmd.exportZip': 'ZIP으로 내보내기',
   'cmd.exportFile': '현재 파일 내보내기',
   'cmd.importSource': '소스 파일 가져오기',
@@ -402,7 +413,6 @@ const ui: Record<string, string> = {
   'type.dictionary': '딕셔너리',
 
   // ----- code pane -----
-  'code.generated': '블록에서 생성된 코드입니다. 읽기 전용입니다.',
   'code.owned': '코드로 편집 중입니다. 블록이 더 이상 이 파일을 갱신하지 않습니다.',
   'code.edit': '코드 편집',
   'code.detach': '코드로 편집',

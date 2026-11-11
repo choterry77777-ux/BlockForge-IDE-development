@@ -30,8 +30,8 @@ const en: Record<string, string> = {
   'cmd.newProject': 'New project',
   'cmd.projects': 'Projects',
   'cmd.openProjectFile': 'Open project file',
-  'cmd.save': 'Save project',
-  'cmd.saveAs': 'Save project as',
+  'cmd.save': 'Save',
+  'cmd.saveAs': 'Save as',
   'cmd.exportZip': 'Export as ZIP',
   'cmd.exportFile': 'Export current file',
   'cmd.importSource': 'Import source file',
@@ -77,6 +77,17 @@ const en: Record<string, string> = {
   'palette.none': 'No matching command.',
 
   // ----- home, text tabs, folders, terminal -----
+  'blocks.pausedWhy': "Blocks can follow the code only for JavaScript and TypeScript.",
+  'blocks.follow': "Blocks follow the code.",
+  'blocks.followRaw': "Blocks follow the code. {count} parts are kept as raw code.",
+  'blocks.followError': "The code has an error. Showing the last blocks that could be built.",
+  'blocks.editBlocks': "Edit blocks",
+  'blocks.editTitle': "Edit with blocks?",
+  'blocks.editMessage': "The code is generated from the blocks again. Comments and formatting are not preserved.",
+  'code.generated': "Generated from blocks. Type here to edit it as code.",
+  'code.autoDetached': "You are now editing this file as code. The blocks no longer update it; choose Regenerate to go back to the blocks.",
+  'code.detachCheckpoint': "Before editing the code by hand",
+  'blocks.paused': "Blocks are paused while this file is edited as code.",
   'error.title': 'Something went wrong',
   'error.message': 'This part of the app stopped because of an error. You can try again or reload the window.',
   'error.retry': 'Try again',
@@ -289,7 +300,6 @@ const en: Record<string, string> = {
   'type.dictionary': 'Dictionary',
 
   // ----- code pane -----
-  'code.generated': 'Generated from blocks. Read only.',
   'code.owned': 'Edited as code. Blocks no longer update this file.',
   'code.edit': 'Edit code',
   'code.detach': 'Edit as code',

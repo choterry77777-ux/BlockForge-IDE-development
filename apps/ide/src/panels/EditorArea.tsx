@@ -1,4 +1,4 @@
-import { computeSupport, domainOf, LANGUAGE_IDS, LANGUAGES, type LanguageId, type SupportMatrix, unsupportedBlocks } from '@blockforge/core';
+import { computeSupport, domainOf, importJavaScript, LANGUAGE_IDS, LANGUAGES, type LanguageId, type ProjectFile, type SupportMatrix, unsupportedBlocks } from '@blockforge/core';
 import { useEffect, useMemo, useState } from 'react';
 import { CodeEditor } from '../editor/CodeEditor';
 import { BlocklyPane } from '../blockly/BlocklyPane';
@@ -8,13 +8,13 @@ import { Icon } from '../components/Icon';
 import { MenuButton, SplitHandle } from '../components/ui';
 import { t } from '../i18n';
 import { getPlatform } from '../platform';
-import { runActive, runCapabilities, stopRun } from '../runtime/runner';
+import { runActive, runCapabilities, stopRun, transpile } from '../runtime/runner';
 import { activeFile, useProject } from '../state/project';
 import { useRun } from '../state/run';
 import { type CenterView, useSettings } from '../state/settings';
 import { confirmDialog } from '../state/ui';
 import { closeDoc, focusDoc, focusProject, isDirty, monacoLanguage, newDoc, runnableLanguage, saveDoc, setDocLanguage, setDocText, type TextDoc, textLanguages, useWorkspace } from '../state/workspace';
-import { CodePane } from './CodePane';
+import { blocksFollowCode, CodePane, regenerateFromBlocks } from './CodePane';
 import { Dock, useProblems } from './Dock';
 import { LangBadge } from './Sidebar';
 
@@ -80,6 +80,60 @@ function RunControls({ lang }: { lang: LanguageId }) {
         <Icon name="chevronDown" size={13} />
       </MenuButton>
     </div>
+  );
+}
+
+/**
+ * The blocks of a file that is being edited as code, shown read-only. For JavaScript
+ * and TypeScript they are rebuilt from the code as it is typed; for other languages
+ * there is no reader for the code, so the blocks stay as they were.
+ */
+function CodeBlocksView({ file }: { file: ProjectFile }) {
+  const live = blocksFollowCode(file.language);
+  const [status, setStatus] = useState<{ kind: 'waiting' | 'synced' | 'error'; raw: number }>({ kind: 'waiting', raw: 0 });
+  useEffect(() => {
+    if (!live) return;
+    let alive = true;
+    const timer = setTimeout(async () => {
+      let source = file.code;
+      if (file.language === 'typescript') {
+        // Types are removed first; the blocks carry the logic, and types are inferred again when code is generated.
+        const out = await transpile(file.code, file.name).catch(() => undefined);
+        if (!alive) return;
+        if (!out || out.errors.length) return setStatus({ kind: 'error', raw: 0 });
+        source = out.js;
+      }
+      const r = importJavaScript(source.replace(/^export \{\};?[ \t]*$/gm, ''));
+      if (!alive) return;
+      if (!r.ok || !r.state) return setStatus({ kind: 'error', raw: 0 });
+      // Parts outside the block vocabulary stay as raw code of this file's own language.
+      const state = file.language === 'typescript' ? (JSON.parse(JSON.stringify(r.state).replaceAll('"LANG":"javascript"', '"LANG":"typescript"')) as typeof r.state) : r.state;
+      if (JSON.stringify(state) !== JSON.stringify(file.blocks)) useProject.getState().updateBlocks(file.id, state);
+      setStatus({ kind: 'synced', raw: r.raw });
+    }, 450);
+    return () => {
+      alive = false;
+      clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [live, file.id, file.language, file.code]);
+
+  const text = !live ? t('blocks.paused') : status.kind === 'error' ? t('blocks.followError') : status.raw > 0 ? t('blocks.followRaw', { count: status.raw }) : t('blocks.follow');
+  return (
+    <>
+      <div className="blocks-follow" data-testid="blocks-follow" data-state={live ? status.kind : 'paused'}>
+        <span className={`dot ${!live ? 'warn' : status.kind === 'error' ? 'err' : status.kind === 'synced' ? 'ok' : 'busy'}`} />
+        <span className="col grow" style={{ gap: 0 }}>
+          <span className="secondary">{text}</span>
+          {!live && <span className="faint small">{t('blocks.pausedWhy')}</span>}
+        </span>
+        <button className="btn sm outline" onClick={() => void regenerateFromBlocks(file.id, live)} data-testid="blocks-resume">
+          <Icon name={live ? 'blocks' : 'refresh'} size={14} />
+          {live ? t('blocks.editBlocks') : t('code.reattach')}
+        </button>
+      </div>
+      <BlocklyPane key={`${file.id}-view`} fileId={file.id} language={file.language} initial={file.blocks} readOnly />
+    </>
   );
 }
 
@@ -240,14 +294,14 @@ export function EditorArea() {
             <TextPane key={doc.id} doc={doc} />
           </ErrorBoundary>
         )}
-        {file && view !== 'code' && file.mode === 'blocks' && (
-          <div className="col" style={{ flex: view === 'split' ? `${layout.splitRatio} 1 0` : '1 1 0', minWidth: 0 }}>
-            <ErrorBoundary compact resetKey={file.id}>
-              <BlocklyPane key={file.id} fileId={file.id} language={file.language} initial={file.blocks} diagnostics={result?.diagnostics} unsupported={unsupported} />
+        {file && view !== 'code' && (
+          <div className="col" style={{ flex: view === 'split' ? `${layout.splitRatio} 1 0` : '1 1 0', minWidth: 0, position: 'relative' }}>
+            <ErrorBoundary compact resetKey={`${file.id}-${file.mode}`}>
+              {file.mode === 'blocks' ? <BlocklyPane key={file.id} fileId={file.id} language={file.language} initial={file.blocks} diagnostics={result?.diagnostics} unsupported={unsupported} /> : <CodeBlocksView file={file} />}
             </ErrorBoundary>
           </div>
         )}
-        {file && view === 'split' && file.mode === 'blocks' && (
+        {file && view === 'split' && (
           <SplitHandle
             axis="x"
             onDrag={(dx) => {
@@ -257,7 +311,7 @@ export function EditorArea() {
           />
         )}
         {file && (view !== 'blocks' || file.mode === 'code') && (
-          <div className="col" style={{ flex: view === 'split' && file.mode === 'blocks' ? `${1 - layout.splitRatio} 1 0` : '1 1 0', minWidth: 0, borderLeft: view === 'split' && file.mode === 'blocks' ? 'var(--hairline) solid var(--border-2)' : undefined }}>
+          <div className="col" style={{ flex: view === 'split' ? `${1 - layout.splitRatio} 1 0` : '1 1 0', minWidth: 0, borderLeft: view === 'split' ? 'var(--hairline) solid var(--border-2)' : undefined }}>
             <ErrorBoundary compact resetKey={file.id}>
               <CodePane key={file.id} file={file} />
             </ErrorBoundary>
