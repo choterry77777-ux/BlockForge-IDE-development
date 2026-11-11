@@ -1,0 +1,111 @@
+/*
+ * Design tokens. Values follow the DeepSeek Harness web UI design platform
+ * (neutral surfaces, hairline borders, large soft radii, neutral primary
+ * buttons with blue reserved for links, focus and info actions).
+ */
+:root {
+  --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Hiragino Kaku Gothic ProN', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-code: 'SF Mono', 'JetBrains Mono', 'Fira Code', Consolas, 'Liberation Mono', Menlo, Courier, 'PingFang SC', 'Microsoft YaHei', monospace;
+  --text-base: 14px;
+  --text-secondary: 13px;
+  --text-small: 12px;
+  --text-code: 12.5px;
+
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-panel: 28px;
+  --hairline: 0.5px;
+
+  --motion: 0.2s;
+  --motion-fast: 0.1s;
+  --motion-slow: 0.3s;
+
+  --header-height: 40px;
+  --row-height: 32px;
+  --rail-width: 56px;
+  --titlebar-clearance: 0px;
+
+  --deepseek-400: rgb(122, 170, 255);
+  --deepseek-450: rgb(86, 134, 254);
+  --deepseek-500: rgb(65, 118, 230);
+
+  /* light */
+  --bg-base: rgb(255, 255, 255);
+  --bg-sidebar: rgb(249, 250, 251);
+  --bg-layer-1: rgb(255, 255, 255);
+  --bg-layer-2: rgb(255, 255, 255);
+  --bg-layer-3: rgb(255, 255, 255);
+  --bg-hover: rgba(0, 0, 0, 0.04);
+  --bg-active: rgba(0, 0, 0, 0.07);
+  --bg-code: rgb(249, 250, 251);
+  --bg-bubble: rgb(237, 243, 254);
+  --bg-menu: rgba(252, 253, 254, 0.78);
+  --bg-tooltip: rgb(44, 44, 46);
+  --label-primary: rgb(15, 17, 21);
+  --label-secondary: rgb(97, 102, 107);
+  --label-tertiary: rgb(129, 133, 140);
+  --label-on-fill: rgb(255, 255, 255);
+  --border-1: rgba(0, 0, 0, 0.04);
+  --border-2: rgba(0, 0, 0, 0.1);
+  --border-3: rgba(0, 0, 0, 0.12);
+  --border-4: rgba(0, 0, 0, 0.16);
+  --link: var(--deepseek-500);
+  --focus: var(--deepseek-500);
+  --fill-primary: rgb(15, 17, 21);
+  --fill-primary-hover: rgb(44, 46, 51);
+  --fill-info: var(--deepseek-500);
+  --success: rgb(34, 197, 94);
+  --warning: rgb(245, 158, 11);
+  --error: rgb(236, 19, 19);
+  --done: rgb(124, 58, 237);
+  --diff-add-bg: rgb(230, 244, 231);
+  --diff-add: rgb(1, 162, 65);
+  --diff-del-bg: rgb(252, 230, 226);
+  --diff-del: rgb(186, 39, 35);
+  --elevation-soft: 0 0 0 var(--hairline) var(--border-3), 0 2px 8px rgba(0, 0, 0, 0.05);
+  --elevation-panel: 0 0 0 var(--hairline) var(--border-3), 0 8px 28px rgba(0, 0, 0, 0.1);
+  --elevation-prominent: 0 0 0 var(--hairline) var(--border-4), 0 16px 48px rgba(0, 0, 0, 0.16);
+  --mask: rgba(0, 0, 0, 0.32);
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --bg-base: rgb(21, 21, 23);
+  --bg-sidebar: rgb(27, 27, 28);
+  --bg-layer-1: rgb(35, 35, 36);
+  --bg-layer-2: rgb(44, 44, 46);
+  --bg-layer-3: rgb(53, 54, 56);
+  --bg-hover: rgba(255, 255, 255, 0.06);
+  --bg-active: rgba(255, 255, 255, 0.1);
+  --bg-code: rgb(27, 27, 28);
+  --bg-bubble: rgb(44, 44, 46);
+  --bg-menu: rgba(48, 49, 54, 0.72);
+  --bg-tooltip: rgb(67, 69, 74);
+  --label-primary: rgb(249, 250, 251);
+  --label-secondary: rgb(207, 211, 214);
+  --label-tertiary: rgb(173, 178, 184);
+  --label-on-fill: rgb(15, 17, 21);
+  --border-1: rgba(255, 255, 255, 0.06);
+  --border-2: rgba(255, 255, 255, 0.12);
+  --border-3: rgba(255, 255, 255, 0.16);
+  --border-4: rgba(255, 255, 255, 0.2);
+  --link: var(--deepseek-400);
+  --focus: var(--deepseek-400);
+  --fill-primary: rgb(249, 250, 251);
+  --fill-primary-hover: rgb(222, 225, 229);
+  --fill-info: var(--deepseek-450);
+  --error: rgb(242, 90, 90);
+  --done: rgb(167, 139, 250);
+  --diff-add-bg: rgb(31, 49, 36);
+  --diff-add: rgb(65, 201, 119);
+  --diff-del-bg: rgb(60, 31, 27);
+  --diff-del: rgb(250, 66, 62);
+  --elevation-soft: 0 0 0 var(--hairline) var(--border-3), 0 2px 8px rgba(0, 0, 0, 0.3);
+  --elevation-panel: 0 0 0 var(--hairline) var(--border-3), 0 8px 28px rgba(0, 0, 0, 0.45);
+  --elevation-prominent: 0 0 0 var(--hairline) var(--border-4), 0 16px 48px rgba(0, 0, 0, 0.6);
+  --mask: rgba(0, 0, 0, 0.5);
+  color-scheme: dark;
+}
