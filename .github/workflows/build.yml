@@ -1,13 +1,11 @@
-# Builds the desktop installers. This workflow has not been run yet; the Windows build in particular is untested.
+# Builds the desktop installers on GitHub's macOS and Windows runners and attaches them to the run.
+# Start it by hand: Actions > Build desktop app > Run workflow.
+# It has not been run yet; the Windows build in particular is untested, which is why nothing starts it automatically.
 # The execution tests (npm test) need many language toolchains and are run on a developer machine instead.
-# Started by hand (Actions > Build desktop app > Run workflow)
-# or by pushing a tag such as v0.1.0. The installers are attached to the run as artifacts.
 name: Build desktop app
 
 on:
   workflow_dispatch:
-  push:
-    tags: ['v*']
 
 permissions:
   contents: read

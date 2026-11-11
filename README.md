@@ -81,7 +81,7 @@ Build the macOS app and disk image:
 npm run app:mac
 ```
 
-The results are written to `apps/ide/src-tauri/target/release/bundle/` (`macos/BlockForge.app` and `dmg/BlockForge_<version>_aarch64.dmg`).
+The results are written to `apps/ide/src-tauri/target/release/bundle/` (`macos/BlockForge.app` and `dmg/BlockForge_<version>_aarch64.dmg`). The script remaps your home directory out of the compiled binary, so the paths of the build machine are not shipped.
 
 The app is not notarised. On another Mac, open it the first time with right-click > Open, or remove the quarantine flag:
 

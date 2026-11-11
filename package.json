@@ -19,7 +19,7 @@
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{ts,tsx,css,json,md}\"",
     "tauri": "npm run tauri -w @blockforge/ide --",
-    "app:mac": "npm run tauri -w @blockforge/ide -- build",
+    "app:mac": "RUSTFLAGS=\"--remap-path-prefix=$HOME=/_\" npm run tauri -w @blockforge/ide -- build",
     "docs:support": "BF_WRITE_DOCS=1 vitest run packages/core/test/docs.test.ts",
     "test:rust": "cd apps/ide/src-tauri && cargo test"
   },
