@@ -159,38 +159,38 @@ export function Dock() {
   const setTab = (dockTab: DockTab) => useSettings.getState().update({ layout: { dockTab } });
   return (
     <div className="col grow" data-testid="dock">
-      <div className="row gap-4" style={{ height: 36, padding: '0 6px 0 8px', flex: 'none' }}>
+      <div className="row gap-4 dock-head" style={{ height: 36, padding: '0 6px 0 8px', flex: 'none' }}>
         <div className="tabs">
           <button className={`tab ${tab === 'output' ? 'active' : ''}`} onClick={() => setTab('output')} data-testid="dock-output">
             <Icon name="terminal" size={14} />
-            {t('dock.output')}
+            <span className="tab-label">{t('dock.output')}</span>
           </button>
           <button className={`tab ${tab === 'problems' ? 'active' : ''}`} onClick={() => setTab('problems')} data-testid="dock-problems">
             <Icon name="warning" size={14} />
-            {t('dock.problems')}
+            <span className="tab-label">{t('dock.problems')}</span>
             {errors > 0 && <span className="chip err">{errors}</span>}
             {warnings > 0 && <span className="chip warn">{warnings}</span>}
           </button>
           <button className={`tab ${tab === 'input' ? 'active' : ''}`} onClick={() => setTab('input')} data-testid="dock-input">
             <Icon name="edit" size={14} />
-            {t('dock.input')}
+            <span className="tab-label">{t('dock.input')}</span>
           </button>
           <button className={`tab ${tab === 'terminal' ? 'active' : ''}`} onClick={() => setTab('terminal')} data-testid="dock-terminal">
             <Icon name="terminal" size={14} />
-            {t('dock.terminal')}
+            <span className="tab-label">{t('dock.terminal')}</span>
           </button>
         </div>
         {tab === 'terminal' ? <TerminalTabs /> : <span className="grow" />}
         {status !== 'idle' && (
-          <span className="row gap-6 secondary muted">
+          <span className="row gap-6 secondary muted dock-status" title={status === 'building' ? t('run.building') : t('run.running')} data-testid="run-status">
             <span className="dot busy" />
-            <span className="shimmer">{status === 'building' ? t('run.building') : t('run.running')}</span>
+            <span className="shimmer status-text">{status === 'building' ? t('run.building') : t('run.running')}</span>
           </span>
         )}
         {status === 'idle' && exit && (
-          <span className="row gap-6 secondary muted" data-testid="run-result">
+          <span className="row gap-6 secondary muted dock-status" title={exit.ok ? t('run.ok', { ms: exit.ms }) : t('run.notOk')} data-testid="run-result">
             <span className={`dot ${exit.ok ? 'ok' : 'err'}`} />
-            {exit.ok ? t('run.ok', { ms: exit.ms }) : t('run.notOk')}
+            <span className="status-text">{exit.ok ? t('run.ok', { ms: exit.ms }) : t('run.notOk')}</span>
           </span>
         )}
         {errors > 0 && (

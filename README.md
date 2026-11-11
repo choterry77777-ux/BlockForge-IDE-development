@@ -2,7 +2,7 @@
 
 BlockForge is a desktop IDE where you build programs from visual blocks and get real, readable source code in 19 programming languages. The same blocks can be switched between languages, run immediately, compared side by side, and edited as text when you outgrow the blocks.
 
-It is a macOS app (Tauri 2 + React + Blockly + Monaco). A Windows build configuration is included but has not been run yet; see [Status](#status).
+It is a desktop app for macOS and Windows (Tauri 2 + React + Blockly + Monaco). macOS is the platform it was developed and used on; the Windows build is produced and self-tested by CI only; see [Status](#status).
 
 ## What it does
 
@@ -49,7 +49,7 @@ It is a macOS app (Tauri 2 + React + Blockly + Monaco). A Windows build configur
 | --- | --- |
 | Code generation, 19 languages | Implemented. Generated programs for 16 languages are compiled and executed by the test suite and their output compared across languages. Dart is generated but has never been executed. |
 | macOS app | Built and run on Apple Silicon. Ad-hoc signed, not notarised. |
-| Windows app | Build workflow included (`.github/workflows/build.yml`). **Not built or tested yet.** |
+| Windows app | Built by the GitHub Actions workflow on a Windows Server 2025 runner (x64). The built program passed its self-test there (toolchain detection, running code, terminal, folder access, credential store) and a screenshot showed the interface rendering. The installers themselves have not been run, and nobody has used the app by hand on Windows 10 or 11 yet. Not code-signed, so SmartScreen warns on first start. |
 | Assistant | Tested against simulated provider responses. No live provider calls were made during development. |
 | Debugger | Not implemented. |
 
@@ -91,7 +91,11 @@ xattr -dr com.apple.quarantine /Applications/BlockForge.app
 
 ### Windows
 
-Not verified. The intended route is the GitHub Actions workflow: open the Actions tab, choose "Build desktop app" and run it. It builds NSIS and MSI installers on a Windows runner and attaches them to the run. To build locally on Windows, install Node.js, Rust (MSVC toolchain) and the WebView2 runtime, then run `npm install` and `npm run tauri -- build`.
+The installers are built by the GitHub Actions workflow: open the Actions tab, choose "Build desktop app" and run it (platform `windows`). It builds an NSIS installer (`BlockForge_<version>_x64-setup.exe`) and an MSI on a Windows runner, runs the self-test of the built program, and attaches the installers, the self-test report and screenshots to the run.
+
+To build locally on Windows, install Node.js, Rust (MSVC toolchain) and the WebView2 runtime, then run `npm install` and `npm run tauri -- build`. A local Windows build has not been tried.
+
+The installers are not code-signed. Windows SmartScreen shows a warning the first time; choose "More info" and then "Run anyway".
 
 ## Tests
 
@@ -105,6 +109,12 @@ npm run test:e2e      # interface tests (needs Google Chrome and the dev server)
 
 - **Execution tests** generate a set of example programs in every language, build and run them with the real toolchain, and compare the output. A language whose toolchain is not installed is skipped and reported as skipped.
 - **Interface tests** drive the app in Chrome: creating projects, dragging blocks, running code, tabs and the folder explorer (against an in-memory folder), the assistant (against simulated provider responses), and a layout audit that walks every panel and dialog in all five languages and fails on overlapping or cut-off text, collapsed panels and crashed views.
+- **Self-test of the built app**: started with the environment variable `BLOCKFORGE_SELFTEST` set to a file path, the desktop app checks the things only a real build can prove (toolchain detection, running code with the built-in runtimes and with local toolchains, the terminal, folder access, the system credential store), writes a JSON report to that path and exits with 0 only when every check passed. Saved tabs, layout and the project list are left as they were.
+
+  ```bash
+  BLOCKFORGE_SELFTEST=/tmp/blockforge-selftest.json apps/ide/src-tauri/target/release/bundle/macos/BlockForge.app/Contents/MacOS/blockforge
+  ```
+
 - `docs/SUPPORT.md` is generated from the generators and checked by a test. Regenerate it with `npm run docs:support`.
 
 ## Repository layout

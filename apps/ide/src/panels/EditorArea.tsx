@@ -204,7 +204,7 @@ export function EditorArea() {
     <div className="bf-main" data-testid="editor-area">
       <div className="bf-header drag" data-tauri-drag-region>
         {layout.sidebarCollapsed && <span style={{ width: 'var(--rail-header-gap, 4px)', flex: 'none' }} />}
-        <div className="tabs scroll" style={{ overflowY: 'hidden', flex: '0 1 auto' }} data-testid="file-tabs">
+        <div className="tabs scroll file-tabs" style={{ overflowY: 'hidden', flex: '0 1 auto' }} data-testid="file-tabs">
           {project &&
             tabs.map((id) => {
               const f = project.files.find((x) => x.id === id);

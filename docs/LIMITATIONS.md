@@ -5,7 +5,7 @@ This list is kept honest on purpose: anything here is either not built, not veri
 ## Platforms
 
 - **macOS** is the only platform the desktop app has been built and run on (Apple Silicon, `aarch64`). The bundle is ad-hoc signed, not notarised, so Gatekeeper asks for confirmation the first time it is opened on another Mac.
-- **Windows**: the backend is written to be cross-platform and a GitHub Actions job builds NSIS and MSI installers (`.github/workflows/build.yml`), but no Windows build has been produced or run yet. Treat Windows as untested.
+- **Windows**: installers (NSIS and MSI, x64) are built by the GitHub Actions workflow on a Windows Server 2025 runner. The built program passes its self-test there: toolchain detection, running code with the built-in runtimes and with local toolchains (C, C++, Go, Rust, Python, Node.js), the terminal, folder access and the credential store; a screenshot confirmed that the interface renders. What has not happened: running the installers themselves, using the app by hand on Windows 10 or 11, and any check of the in-app browser, the folder dialogs or high-DPI displays on Windows. The installers are not code-signed, so SmartScreen warns.
 - **Linux**: not built, not tested.
 - **Browser build** (`npm run dev`): everything that needs the machine is unavailable there by design: local toolchains, opening folders, the terminal, the system keychain and the native in-app browser. API keys are kept in page memory only.
 

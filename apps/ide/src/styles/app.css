@@ -1354,7 +1354,7 @@ table.grid th {
   padding: 0 8px;
   flex: none;
 }
-.bf-header .tabs > .tab {
+.bf-header .tabs:not(.file-tabs) > .tab {
   flex: none;
 }
 /* A small status dot on the corner of an icon button. */
@@ -1510,4 +1510,38 @@ table.grid th {
   border-bottom: var(--hairline) solid var(--border-2);
   flex: none;
   line-height: 1.35;
+}
+
+/* ---------- narrow panels ---------- */
+/* The bottom panel header keeps everything on one line: when it gets narrow, only the
+   tab in front keeps its label, then the run status keeps only its dot. */
+.dock-head {
+  container-type: inline-size;
+  min-width: 0;
+}
+.dock-head > .tabs,
+.dock-head > .dock-status,
+.dock-head > .btn {
+  flex: none;
+}
+.dock-status {
+  white-space: nowrap;
+}
+@container (max-width: 640px) {
+  .dock-head .tab:not(.active) .tab-label {
+    display: none;
+  }
+}
+@container (max-width: 470px) {
+  .dock-head .dock-status .status-text {
+    display: none;
+  }
+}
+/* File tabs shrink with an ellipsis before the tab bar has to scroll. */
+.file-tabs > .tab {
+  flex: 0 1 auto;
+  min-width: 64px;
+}
+.file-tabs > .tab .tab-name {
+  min-width: 0;
 }

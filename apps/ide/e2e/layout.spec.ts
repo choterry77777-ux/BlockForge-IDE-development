@@ -194,6 +194,16 @@ async function walk(page: Page, check: (name: string) => Promise<void>): Promise
     await setLayout(page, { dockOpen: true, dockTab: tab });
     await page.waitForTimeout(100);
     await check(`dock:${tab}`);
+    // The header is tightest while a run is in progress and its status is shown.
+    for (const status of ['building', 'running']) {
+      await bf(page, `window.__bf.useRun.setState({ status: '${status}' })`);
+      await page.waitForTimeout(60);
+      await check(`dock:${tab}:${status}`);
+    }
+    await bf(page, `window.__bf.useRun.setState({ status: 'idle', lastExit: { ok: true, ms: 1234 } })`);
+    await page.waitForTimeout(60);
+    await check(`dock:${tab}:finished`);
+    await bf(page, `window.__bf.useRun.setState({ lastExit: undefined })`);
   }
   await setLayout(page, { rightTab: 'assistant', dockTab: 'output' });
   await command(page, 'settings');
