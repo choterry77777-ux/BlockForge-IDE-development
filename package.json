@@ -1,0 +1,40 @@
+{
+  "name": "blockforge",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "BlockForge IDE - visual block programming for 19 languages",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @blockforge/ide",
+    "build": "npm run build -w @blockforge/ide",
+    "preview": "npm run preview -w @blockforge/ide",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "npm run test:e2e -w @blockforge/ide",
+    "typecheck": "tsc -p packages/core/tsconfig.json --noEmit && tsc -p apps/ide/tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write \"**/*.{ts,tsx,css,json,md}\"",
+    "tauri": "npm run tauri -w @blockforge/ide --",
+    "app:mac": "npm run tauri -w @blockforge/ide -- build",
+    "docs:support": "BF_WRITE_DOCS=1 vitest run packages/core/test/docs.test.ts",
+    "test:rust": "cd apps/ide/src-tauri && cargo test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.0",
+    "@types/node": "^26.6.6",
+    "eslint": "^10.14.0",
+    "eslint-plugin-react-hooks": "^7.0.0",
+    "prettier": "^3.9.10",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.2",
+    "vitest": "^5.1.0"
+  },
+  "overrides": {
+    "dompurify": "^3.4.17"
+  },
+  "license": "MIT"
+}
