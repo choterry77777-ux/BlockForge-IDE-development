@@ -1,5 +1,8 @@
 //! Folders opened as a workspace. Every path the web view sends must resolve
 //! inside a folder the user picked in the native folder dialog.
+//!
+//! Paths are made canonical with `dunce`, which on Windows avoids the `\\?\` prefix
+//! that shells and many tools do not accept.
 
 use std::path::{Path, PathBuf};
 
@@ -53,7 +56,7 @@ pub fn resolve_within(roots: &[PathBuf], raw: &Path) -> Result<PathBuf, String> 
     if !raw.is_absolute() || raw.to_string_lossy().contains('\0') {
         return Err("The path is not valid.".into());
     }
-    let resolved = match raw.canonicalize() {
+    let resolved = match dunce::canonicalize(raw) {
         Ok(p) => p,
         Err(_) => {
             let parent = raw.parent().ok_or("The path is not valid.")?;
@@ -61,7 +64,7 @@ pub fn resolve_within(roots: &[PathBuf], raw: &Path) -> Result<PathBuf, String> 
             if name == ".." || name == "." {
                 return Err("The path is not valid.".into());
             }
-            parent.canonicalize().map_err(|_| "The folder does not exist.".to_string())?.join(name)
+            dunce::canonicalize(parent).map_err(|_| "The folder does not exist.".to_string())?.join(name)
         }
     };
     if roots.iter().any(|r| resolved.starts_with(r)) {
@@ -111,7 +114,7 @@ fn remember(app: &AppHandle, state: &AppState, path: &Path) {
 #[tauri::command]
 pub async fn folder_pick(app: AppHandle, state: State<'_, AppState>) -> Result<Option<Folder>, String> {
     let Some(picked) = pick_folder(&app).await else { return Ok(None) };
-    let path = picked.canonicalize().map_err(|e| e.to_string())?;
+    let path = dunce::canonicalize(&picked).map_err(|e| e.to_string())?;
     remember(&app, &state, &path);
     Ok(Some(folder_of(&path)))
 }
@@ -127,7 +130,7 @@ pub fn folder_reopen(app: AppHandle, state: State<'_, AppState>, path: String) -
     if !read_recent(&app).contains(&path) && within_roots(&state, Path::new(&path)).is_err() {
         return Err("Choose the folder with Open Folder first.".into());
     }
-    let p = PathBuf::from(&path).canonicalize().map_err(|_| "The folder no longer exists.".to_string())?;
+    let p = dunce::canonicalize(PathBuf::from(&path)).map_err(|_| "The folder no longer exists.".to_string())?;
     if !p.is_dir() {
         return Err("The folder no longer exists.".into());
     }
@@ -314,7 +317,7 @@ mod tests {
         let dir = std::env::temp_dir().join(format!("bf-test-{name}-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
-        dir.canonicalize().unwrap()
+        dunce::canonicalize(&dir).unwrap()
     }
 
     #[test]

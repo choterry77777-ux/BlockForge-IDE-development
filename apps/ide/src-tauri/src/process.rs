@@ -106,8 +106,8 @@ struct ExitEvent {
 fn resolve_program(state: &AppState, dir: &Path, req: &ProcRequest) -> Result<PathBuf, String> {
     if let Some(artifact) = &req.artifact {
         let rel = safe_relative(artifact).ok_or("The program path is not inside the project folder.")?;
-        let full = dir.join(rel).canonicalize().map_err(|_| "The built program was not found. Build the project first.".to_string())?;
-        let root = dir.canonicalize().map_err(|e| e.to_string())?;
+        let full = dunce::canonicalize(dir.join(rel)).map_err(|_| "The built program was not found. Build the project first.".to_string())?;
+        let root = dunce::canonicalize(dir).map_err(|e| e.to_string())?;
         if !full.starts_with(&root) || !full.is_file() {
             return Err("The program path is not inside the project folder.".into());
         }
@@ -137,7 +137,8 @@ fn kill_tree(pid: u32) {
     }
     #[cfg(windows)]
     {
-        let _ = std::process::Command::new("taskkill").args(["/PID", &pid.to_string(), "/T", "/F"]).stdout(Stdio::null()).stderr(Stdio::null()).status();
+        use std::os::windows::process::CommandExt;
+        let _ = std::process::Command::new("taskkill").args(["/PID", &pid.to_string(), "/T", "/F"]).stdout(Stdio::null()).stderr(Stdio::null()).creation_flags(crate::state::CREATE_NO_WINDOW).status();
     }
 }
 
@@ -159,6 +160,8 @@ pub async fn proc_spawn(app: AppHandle, state: State<'_, AppState>, id: String, 
     }
     #[cfg(unix)]
     cmd.process_group(0);
+    #[cfg(windows)]
+    cmd.creation_flags(crate::state::CREATE_NO_WINDOW);
 
     let mut child = cmd.spawn().map_err(|e| format!("Could not start {}: {e}", program.display()))?;
     let pid = child.id().unwrap_or(0);

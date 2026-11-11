@@ -1,28 +1,25 @@
-# Builds the desktop installers on GitHub's macOS and Windows runners and attaches them to the run.
+# Builds the desktop installers on GitHub's runners and attaches them to the run.
 # Start it by hand: Actions > Build desktop app > Run workflow.
-# It has not been run yet; the Windows build in particular is untested, which is why nothing starts it automatically.
 # The execution tests (npm test) need many language toolchains and are run on a developer machine instead.
 name: Build desktop app
 
 on:
   workflow_dispatch:
+    inputs:
+      platform:
+        description: Which installers to build
+        type: choice
+        options: [all, windows, macos]
+        default: all
 
 permissions:
   contents: read
 
 jobs:
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: macos-latest
-            name: macos-arm64
-            bundles: app,dmg
-          - os: windows-latest
-            name: windows-x64
-            bundles: nsis,msi
-    runs-on: ${{ matrix.os }}
+  windows:
+    if: inputs.platform == 'all' || inputs.platform == 'windows'
+    runs-on: windows-latest
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -39,12 +36,67 @@ jobs:
         working-directory: apps/ide/src-tauri
         run: cargo test
       - name: Build installers
-        run: npm run tauri -- build --bundles ${{ matrix.bundles }}
+        run: npm run tauri -- build --bundles nsis,msi
+      # The built program checks itself: toolchains, running code, the terminal, files and the
+      # credential store. It writes a report and exits with 0 only when every check passed.
+      - name: Self-test of the built app
+        shell: pwsh
+        run: |
+          $report = Join-Path $env:GITHUB_WORKSPACE 'selftest-report.json'
+          $env:BLOCKFORGE_SELFTEST = $report
+          function Shot($name) {
+            try {
+              Add-Type -AssemblyName System.Windows.Forms, System.Drawing
+              $b = [System.Windows.Forms.SystemInformation]::VirtualScreen
+              $bmp = New-Object System.Drawing.Bitmap $b.Width, $b.Height
+              $g = [System.Drawing.Graphics]::FromImage($bmp)
+              $g.CopyFromScreen($b.Left, $b.Top, 0, 0, $bmp.Size)
+              $bmp.Save((Join-Path $env:GITHUB_WORKSPACE $name))
+            } catch { Write-Host "No screenshot: $_" }
+          }
+          $p = Start-Process -FilePath 'apps/ide/src-tauri/target/release/blockforge.exe' -PassThru
+          $null = $p.Handle
+          Start-Sleep -Seconds 25
+          Shot 'selftest-screen-start.png'
+          $finished = $p.WaitForExit(480000)
+          Shot 'selftest-screen-end.png'
+          if (-not $finished) { Write-Host 'The self-test did not finish in time.'; Stop-Process -Id $p.Id -Force }
+          if (Test-Path $report) { Get-Content $report } else { Write-Host 'No report was written.' }
+          Write-Host "Exit code: $($p.ExitCode)"
+          if (-not $finished -or $p.ExitCode -ne 0) { exit 1 }
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: BlockForge-${{ matrix.name }}
-          if-no-files-found: error
+          name: BlockForge-windows-x64
           path: |
-            apps/ide/src-tauri/target/release/bundle/dmg/*.dmg
             apps/ide/src-tauri/target/release/bundle/nsis/*.exe
             apps/ide/src-tauri/target/release/bundle/msi/*.msi
+            selftest-report.json
+            selftest-screen-*.png
+
+  macos:
+    if: inputs.platform == 'all' || inputs.platform == 'macos'
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/ide/src-tauri
+      - run: npm ci
+      - run: npm run typecheck
+      - name: Backend tests
+        working-directory: apps/ide/src-tauri
+        run: cargo test
+      - name: Build app and disk image
+        run: npm run app:mac
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BlockForge-macos-arm64
+          if-no-files-found: error
+          path: apps/ide/src-tauri/target/release/bundle/dmg/*.dmg

@@ -359,8 +359,16 @@ interface Saved {
 let persistTimer: ReturnType<typeof setTimeout> | undefined;
 let restored = false;
 
+let frozen = false;
+
+/** Stop saving tabs and the folder, for runs that must leave the user's state alone. */
+export function freezeWorkspace(): void {
+  frozen = true;
+  clearTimeout(persistTimer);
+}
+
 function persist(): void {
-  if (!restored) return;
+  if (!restored || frozen) return;
   clearTimeout(persistTimer);
   persistTimer = setTimeout(() => {
     const s = ws();

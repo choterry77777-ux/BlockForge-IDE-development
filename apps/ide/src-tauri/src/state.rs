@@ -143,3 +143,7 @@ impl AppState {
         }
     }
 }
+
+/// Console programs started from a windowed app would each flash a console window on Windows.
+#[cfg(windows)]
+pub const CREATE_NO_WINDOW: u32 = 0x0800_0000;

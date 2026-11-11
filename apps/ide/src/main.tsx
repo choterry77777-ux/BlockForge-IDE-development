@@ -16,6 +16,8 @@ async function start() {
       <App />
     </StrictMode>,
   );
+  // Only acts when the desktop app was started for a self-test.
+  void import('./selftest').then((m) => setTimeout(() => void m.maybeSelfTest(), 1500));
 }
 
 void start();

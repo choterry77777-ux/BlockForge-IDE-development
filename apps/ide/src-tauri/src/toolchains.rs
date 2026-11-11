@@ -25,6 +25,8 @@ pub struct Detected {
 async fn probe(path: &std::path::Path, args: &[String], search_path: &str) -> Option<String> {
     let mut cmd = tokio::process::Command::new(path);
     cmd.args(args).env("PATH", search_path).stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::piped()).kill_on_drop(true);
+    #[cfg(windows)]
+    cmd.creation_flags(crate::state::CREATE_NO_WINDOW);
     let out = tokio::time::timeout(Duration::from_secs(15), cmd.output()).await.ok()?.ok()?;
     // A stub that exists but cannot run (for example /usr/bin/java without a JDK) does not count.
     if !out.status.success() {

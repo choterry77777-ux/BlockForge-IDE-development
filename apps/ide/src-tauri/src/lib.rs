@@ -9,6 +9,7 @@ mod paths;
 mod process;
 mod pty;
 mod secrets;
+mod selftest;
 mod state;
 mod toolchains;
 mod workspace;
@@ -60,6 +61,8 @@ pub fn run() {
             browser::browser_visible,
             browser::browser_eval,
             browser::browser_close,
+            selftest::selftest_begin,
+            selftest::selftest_finish,
         ])
         .build(tauri::generate_context!())
         .expect("error while starting BlockForge");
